@@ -2,6 +2,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.IOUtils;
 import com.datastax.oss.driver.api.core.type.codec.MappingCodec;
 import com.datastax.oss.driver.api.core.type.codec.TypeCodecs;
 import com.datastax.oss.driver.api.core.type.reflect.GenericType;
@@ -31,20 +32,14 @@ public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
     @Override
     protected String innerToOuter(@Nullable UUID uuid) {
 
-        S3Object fullObject = null;
-        StringBuffer s = new StringBuffer();
+        try (S3Object fullObject = s3Client.getObject(new GetObjectRequest(bucketName, keyspaceName+"/"+tableName+"/"+uuid.toString())))
+        {
+            return IOUtils.toString(fullObject.getObjectContent());
 
-        try {
-            fullObject = s3Client.getObject(new GetObjectRequest(bucketName, keyspaceName+"/"+tableName+"/"+uuid.toString()));
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fullObject.getObjectContent()));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                s.append(line);
-            }
-        } catch (SdkClientException|IOException e) {
-            e.printStackTrace();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
         }
-        return s.toString();
+        return null;
     }
 
     @Nullable

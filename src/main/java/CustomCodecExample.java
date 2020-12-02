@@ -1,3 +1,6 @@
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
@@ -19,6 +22,10 @@ import java.util.stream.Stream;
 
 public class CustomCodecExample {
 
+    static AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+            .withRegion(Regions.US_EAST_1)
+            .build();
+
     private static String readLineByLine(String filePath)
     {
         StringBuilder contentBuilder = new StringBuilder();
@@ -37,10 +44,12 @@ public class CustomCodecExample {
 
         List<InetSocketAddress> contactPoints =
                 Collections.singletonList(
-                        InetSocketAddress.createUnresolved("cassandra.us-east-1.amazonaws.com", 443));
+                        InetSocketAddress.createUnresolved("cassandra.us-east-1.amazonaws.com", 9142));
 
-        TypeCodec<String> s3Codec = new CqlUuidToTextCodec("ks", "test2");
+        // Initialize S3 Codec
+        TypeCodec<String> s3Codec = new CqlUuidToTextCodec("company-keyspaces-large-objects", "ks", "test2", s3Client);
 
+        // Create Amazon Keyspaces session
         CqlSession session = CqlSession.builder()
                 .addContactPoints(contactPoints)
                 .withSslContext(SSLContext.getDefault())
@@ -57,6 +66,7 @@ public class CustomCodecExample {
         // Let's write large file to S3 and insert an UUID in Amazon Keyspaces
         PreparedStatement ps = session.prepare("INSERT INTO ks.test2 (k, v) VALUES (?, ?)");
 
+        System.out.println("Writing test");
         for (int i=0; i<100; i++) {
             long startTime = System.nanoTime();
             session.execute(
@@ -69,6 +79,7 @@ public class CustomCodecExample {
             System.out.println("Elapsed time to write the file "+i+" to S3:" + TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS) + "ms");
         }
 
+        System.out.println("Reading test");
         for (int i=0; i<100; i++) {
             long startTime = System.nanoTime();
             // Let's read large file from S3 by providing primary key from Amazon Keyspaces
@@ -80,7 +91,6 @@ public class CustomCodecExample {
                     build());
             String v = rs.one().get("v", s3Codec);
             long elapsedTime = System.nanoTime() - startTime;
-
             System.out.println("Elapsed time to read the file "+i+" to S3:" + TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS) + "ms");
         }
         session.close();

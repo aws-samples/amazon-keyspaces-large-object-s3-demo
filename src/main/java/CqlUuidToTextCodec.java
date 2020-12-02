@@ -1,43 +1,57 @@
+import com.amazonaws.SdkClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.datastax.oss.driver.api.core.type.codec.MappingCodec;
 import com.datastax.oss.driver.api.core.type.codec.TypeCodecs;
 import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.UUID;
 
 public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
 
     String keyspaceName;
     String tableName;
+    String bucketName;
+    static AmazonS3 s3Client;
 
-    static GetObjectFromS3 getObjectFromS3 = new GetObjectFromS3();
-    static PutObjectToS3 putObjectToS3 = new PutObjectToS3();
-
-    protected CqlUuidToTextCodec(String keyspaceName, String tableName) {
+    protected CqlUuidToTextCodec(String bucketName, String keyspaceName, String tableName, AmazonS3 s3Client) {
         super(TypeCodecs.UUID, GenericType.of(String.class));
-        System.out.println("Just a test");
         this.keyspaceName = keyspaceName;
         this.tableName = tableName;
+        this.bucketName = bucketName;
+        this.s3Client = s3Client;
     }
 
     @Nullable
     @Override
     protected String innerToOuter(@Nullable UUID uuid) {
-        String result = "";
+
+        S3Object fullObject = null;
+        StringBuffer s = new StringBuffer();
+
         try {
-            result = getObjectFromS3.getObject("company-keyspaces-large-objects", keyspaceName+"/"+tableName+"/"+uuid.toString()).toString();
-        } catch (IOException e) {
+            fullObject = s3Client.getObject(new GetObjectRequest(bucketName, keyspaceName+"/"+tableName+"/"+uuid.toString()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fullObject.getObjectContent()));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                s.append(line);
+            }
+        } catch (SdkClientException|IOException e) {
             e.printStackTrace();
         }
-        return result;
+        return s.toString();
     }
 
     @Nullable
     @Override
     protected UUID outerToInner(@Nullable String s) {
         UUID uuid = UUID.randomUUID();
-        putObjectToS3.putObject(s, "company-keyspaces-large-objects",keyspaceName+"/"+tableName+"/"+uuid.toString());
+        s3Client.putObject(bucketName,keyspaceName+"/"+tableName+"/"+uuid.toString(),s);
         return uuid;
     }
 

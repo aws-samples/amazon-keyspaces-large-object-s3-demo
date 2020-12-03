@@ -2,13 +2,13 @@
 
 ### Description
 
-Custom S3 Codec support transparent, user-configurable mapping of UUID pointers to S3 objects.
+Custom S3 Codec supports transparent, user-configurable mapping of UUID pointers to S3 objects.
 
 Practical use cases that justify such a feature:
 
-1. if your data is larger than 1MB Amazon Keyspaces quota  
-2. if data should be available transparently for Amazon Keyspaces and Analytics (EMR)
-3. if you want to reduce storage costs of moving large objects from Amazon Keyspaces
+1. if your data is larger than 1MB that exceeds the Amazon Keyspaces row size quota  
+2. if data should be available transparently for Amazon Keyspaces and other analytical frameworks like EMR, Athena, and etc. 
+3. if you want to reduce storage costs by moving large objects to a different storage
 4. if your data needs only infrequent access
 
 ### Prerequisites

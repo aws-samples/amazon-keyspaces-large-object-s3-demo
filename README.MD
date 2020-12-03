@@ -1,6 +1,17 @@
 # Amazon Keyspaces (for Apache Cassandra) and S3 Codec demo.
 
-Prerequisites
+### Description
+
+Custom S3 Codec support transparent, user-configurable mapping of UUID pointers to S3 objects.
+
+Practical use cases that justify such a feature:
+
+1. if your data is larger than 1MB Amazon Keyspaces quota  
+2. if data should be available transparently for Amazon Keyspaces and Analytics (EMR)
+3. if you want to reduce storage costs of moving large objects from Amazon Keyspaces
+4. if your data needs only infrequent access
+
+### Prerequisites
 
     JDK 1.7.0u71 or better
     Maven 3.3.9 or better

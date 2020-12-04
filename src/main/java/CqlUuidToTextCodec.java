@@ -1,4 +1,3 @@
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -8,9 +7,7 @@ import com.datastax.oss.driver.api.core.type.codec.TypeCodecs;
 import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.UUID;
 
 public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
@@ -18,7 +15,7 @@ public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
     String keyspaceName;
     String tableName;
     String bucketName;
-    static AmazonS3 s3Client;
+    AmazonS3 s3Client;
 
     protected CqlUuidToTextCodec(String bucketName, String keyspaceName, String tableName, AmazonS3 s3Client) {
         super(TypeCodecs.UUID, GenericType.of(String.class));

@@ -84,7 +84,6 @@ public class CustomCodecExample {
             long startTime = System.nanoTime();
             // Let's read large file from S3 by providing primary key from Amazon Keyspaces
             PreparedStatement ps1 = session.prepare("SELECT k,v FROM ks.test2 WHERE k = ?");
-
             ResultSet rs = session.execute(ps1.
                     boundStatementBuilder().
                     setInt("k", i).

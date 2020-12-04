@@ -7,7 +7,7 @@ Custom S3 Codec supports transparent, user-configurable mapping of UUID pointers
 Practical use cases that justify such a feature:
 
 1. Your data is larger than 1MB, which exceeds the Amazon Keyspaces row size quota  
-2. Your data needs to be accessible via Amazon Keyspaces  
+2. Your data needs to be accessible via Amazon Keyspaces (the driver side)  
 3. You want to reduce storage costs by moving large objects to a different location for storage
 4. You need to access your data infrequently 
 
@@ -82,7 +82,7 @@ In the above example, the driver writes your large file into Amazon S3 and inser
                         boundStatementBuilder().
                         setInt("k", i).
                         build());
-                String v = rs.one().get("v", s3Codec);
+                String v = rs.one().get("v", s3Codec); // Read S3 Object from Amazon S3
     
 ````
 In the last example, the driver reads your large file from Amazon S3 by providing the uuid pointer in the CQL statement.

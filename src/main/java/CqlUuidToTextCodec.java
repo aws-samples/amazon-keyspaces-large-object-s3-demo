@@ -12,10 +12,10 @@ import java.util.UUID;
 
 public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
 
-    String keyspaceName;
-    String tableName;
-    String bucketName;
-    AmazonS3 s3Client;
+    private String keyspaceName;
+    private String tableName;
+    private String bucketName;
+    private AmazonS3 s3Client;
 
     protected CqlUuidToTextCodec(String bucketName, String keyspaceName, String tableName, AmazonS3 s3Client) {
         super(TypeCodecs.UUID, GenericType.of(String.class));
@@ -34,7 +34,7 @@ public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
             return IOUtils.toString(fullObject.getObjectContent());
 
         } catch (IOException ioException) {
-            ioException.printStackTrace();
+            throw new RuntimeException();
         }
         return null;
     }

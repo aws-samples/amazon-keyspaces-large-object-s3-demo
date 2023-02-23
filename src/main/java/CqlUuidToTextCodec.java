@@ -33,8 +33,8 @@ public class CqlUuidToTextCodec extends MappingCodec<UUID, String> {
         {
             return IOUtils.toString(fullObject.getObjectContent());
 
-        } catch (IOException ioException) {
-            throw new RuntimeException();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }
